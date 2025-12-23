@@ -94,6 +94,10 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
         when (action) {
             "${context.packageName}.${CallkitConstants.ACTION_CALL_INCOMING}" -> {
                 try {
+                    // Acquire wake lock to keep device awake during incoming call ringing
+                    val duration = data.getLong(CallkitConstants.EXTRA_CALLKIT_DURATION, 30000L)
+                    CallkitWakeLockManager.acquireWakeLock(context.applicationContext, duration)
+                    
                     getCallkitNotificationManager()?.showIncomingNotification(data)
                     sendEventFlutter(CallkitConstants.ACTION_CALL_INCOMING, data)
                     addCall(context, Data.fromBundle(data))
@@ -104,6 +108,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
 
             "${context.packageName}.${CallkitConstants.ACTION_CALL_START}" -> {
                 try {
+                    // Release wake lock as call is starting (ongoing call has its own management)
+                    CallkitWakeLockManager.releaseWakeLock()
+                    
                     // start service and show ongoing call when call is accepted
                     CallkitNotificationService.startServiceWithAction(
                         context,
@@ -120,6 +127,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
             "${context.packageName}.${CallkitConstants.ACTION_CALL_ACCEPT}" -> {
                 try {
                     // Log.d(TAG, "[CALLKIT] 📱 ACTION_CALL_ACCEPT")
+                    // Release wake lock as call is being accepted
+                    CallkitWakeLockManager.releaseWakeLock()
+                    
                     FlutterCallkitIncomingPlugin.notifyEventCallbacks(CallkitEventCallback.CallEvent.ACCEPT, data)
                     // start service and show ongoing call when call is accepted
                     CallkitNotificationService.startServiceWithAction(
@@ -136,7 +146,10 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
 
             "${context.packageName}.${CallkitConstants.ACTION_CALL_DECLINE}" -> {
                 try {
-                    // Log.d(TAG, "[CALLKIT] 📱 ACTION_CALL_DECLINE")           
+                    // Log.d(TAG, "[CALLKIT] 📱 ACTION_CALL_DECLINE")
+                    // Release wake lock as call is declined
+                    CallkitWakeLockManager.releaseWakeLock()
+                    
                     // Notify native decline callbacks
                     FlutterCallkitIncomingPlugin.notifyEventCallbacks(CallkitEventCallback.CallEvent.DECLINE, data)
                     // clear notification
@@ -150,6 +163,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
 
             "${context.packageName}.${CallkitConstants.ACTION_CALL_ENDED}" -> {
                 try {
+                    // Release wake lock as call has ended
+                    CallkitWakeLockManager.releaseWakeLock()
+                    
                     // clear notification and stop service
                     getCallkitNotificationManager()?.clearIncomingNotification(data, false)
                     CallkitNotificationService.stopService(context)
@@ -162,6 +178,9 @@ class CallkitIncomingBroadcastReceiver : BroadcastReceiver() {
 
             "${context.packageName}.${CallkitConstants.ACTION_CALL_TIMEOUT}" -> {
                 try {
+                    // Release wake lock as call has timed out
+                    CallkitWakeLockManager.releaseWakeLock()
+                    
                     // clear notification and show miss notification
                     val notificationManager = getCallkitNotificationManager()
                     notificationManager?.clearIncomingNotification(data, false)
