@@ -26,6 +26,7 @@
       <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/firebase_messaging/example/.pub" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/.symlinks/plugins/firebase_messaging/example/build" />
     </content>
+    <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Dart SDK" level="project" />
     <orderEntry type="library" name="Flutter Plugins" level="project" />
