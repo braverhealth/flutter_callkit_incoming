@@ -6,7 +6,7 @@ import android.util.Log
 
 /**
  * Manages wake locks for incoming calls to prevent the device from sleeping
- * while a call notification is being displayed.
+ * and keep the screen on while a call notification is being displayed.
  * 
  * This is necessary because WakelockPlus (Flutter plugin) only works when
  * the Flutter engine is running and the app is in foreground. When the app
@@ -20,8 +20,13 @@ object CallkitWakeLockManager {
     private var wakeLock: PowerManager.WakeLock? = null
     
     /**
-     * Acquires a partial wake lock to keep the CPU running during an incoming call.
-     * Also uses ACQUIRE_CAUSES_WAKEUP to turn on the screen.
+     * Acquires a wake lock to keep the screen on during an incoming call.
+     * Uses SCREEN_BRIGHT_WAKE_LOCK | FULL_WAKE_LOCK | ACQUIRE_CAUSES_WAKEUP
+     * to turn on and keep the screen bright.
+     * 
+     * Note: These flags are deprecated but still work and are necessary
+     * for keeping the screen on from a BroadcastReceiver context where
+     * we don't have access to a Window to set FLAG_KEEP_SCREEN_ON.
      * 
      * @param context Application context
      * @param durationMs Duration in milliseconds to hold the wake lock.
@@ -39,14 +44,18 @@ object CallkitWakeLockManager {
                 return
             }
             
+            // Use SCREEN_BRIGHT_WAKE_LOCK | FULL_WAKE_LOCK to keep screen on
+            // ACQUIRE_CAUSES_WAKEUP turns the screen on when acquired
             @Suppress("DEPRECATION")
             wakeLock = powerManager.newWakeLock(
-                PowerManager.PARTIAL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                PowerManager.SCREEN_BRIGHT_WAKE_LOCK or 
+                PowerManager.FULL_WAKE_LOCK or 
+                PowerManager.ACQUIRE_CAUSES_WAKEUP,
                 WAKE_LOCK_TAG
             )
             
             wakeLock?.acquire(durationMs)
-            Log.d(TAG, "Wake lock acquired for ${durationMs}ms")
+            Log.d(TAG, "Wake lock acquired for ${durationMs}ms (screen will stay on)")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to acquire wake lock", e)
         }
