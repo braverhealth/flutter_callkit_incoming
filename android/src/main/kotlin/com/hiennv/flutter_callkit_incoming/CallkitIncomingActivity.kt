@@ -112,6 +112,7 @@ class CallkitIncomingActivity : Activity() {
                 IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}")
             )
         }
+        FlutterCallkitIncomingPlugin.getInstance()?.getCallkitSoundPlayerManager()?.keepRingingOnFullScreen();
     }
 
     private fun wakeLockRequest(duration: Long) {
