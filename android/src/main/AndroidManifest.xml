@@ -37,6 +37,18 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name="com.hiennv.flutter_callkit_incoming.KeepScreenOnActivity"
+            android:taskAffinity="com.hiennv.flutter_callkit_incoming.KEEP_SCREEN_ON_AFFINITY"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:turnScreenOn="true"
+            android:showWhenLocked="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:theme="@style/TranslucentTheme"/>
+
         <activity
             android:exported="false"
             android:theme="@style/TranslucentTheme"
