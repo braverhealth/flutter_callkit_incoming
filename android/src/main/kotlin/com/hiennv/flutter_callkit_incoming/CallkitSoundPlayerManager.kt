@@ -1,9 +1,6 @@
 package com.hiennv.flutter_callkit_incoming
 
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.Ringtone
@@ -21,26 +18,11 @@ class CallkitSoundPlayerManager(private val context: Context) {
 
     private var isPlaying: Boolean = false
 
-
-    inner class ScreenOffCallkitIncomingBroadcastReceiver : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            if (isPlaying){
-                stop()
-            }
-        }
-    }
-
-    private var screenOffCallkitIncomingBroadcastReceiver = ScreenOffCallkitIncomingBroadcastReceiver()
-
-
     fun play(data: Bundle) {
         this.isPlaying = true
         this.prepare()
         this.playSound(data)
         this.playVibrator()
-
-        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
-        context.registerReceiver(screenOffCallkitIncomingBroadcastReceiver, filter)
     }
 
     fun stop() {
@@ -50,9 +32,6 @@ class CallkitSoundPlayerManager(private val context: Context) {
         vibrator?.cancel()
         ringtone = null
         vibrator = null
-        try {
-            context.unregisterReceiver(screenOffCallkitIncomingBroadcastReceiver)
-        }catch (_: Exception){}
     }
 
     fun destroy() {
@@ -62,9 +41,6 @@ class CallkitSoundPlayerManager(private val context: Context) {
         vibrator?.cancel()
         ringtone = null
         vibrator = null
-        try {
-            context.unregisterReceiver(screenOffCallkitIncomingBroadcastReceiver)
-        }catch (_: Exception){}
     }
 
     private fun prepare() {
