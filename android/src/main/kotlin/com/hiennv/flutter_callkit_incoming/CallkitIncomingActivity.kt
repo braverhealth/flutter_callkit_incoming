@@ -111,6 +111,10 @@ class CallkitIncomingActivity : Activity() {
                 IntentFilter("${packageName}.${ACTION_ENDED_CALL_INCOMING}")
             )
         }
+        
+        // Notify sound player that full-screen UI is now visible
+        // This enables stopping ringtone when user presses power button
+        FlutterCallkitIncomingPlugin.getInstance()?.getCallkitSoundPlayerManager()?.setFullScreenActivityVisible(true)
     }
 
     private fun wakeLockRequest(duration: Long) {
@@ -233,6 +237,7 @@ class CallkitIncomingActivity : Activity() {
         try {
             ivBackground.setBackgroundColor(Color.parseColor(backgroundColor))
         } catch (error: Exception) {
+
         }
         var backgroundUrl = data?.getString(CallkitConstants.EXTRA_CALLKIT_BACKGROUND_URL, "")
         if (!backgroundUrl.isNullOrEmpty()) {
@@ -356,6 +361,8 @@ class CallkitIncomingActivity : Activity() {
 
     override fun onDestroy() {
         unregisterReceiver(endedCallkitIncomingBroadcastReceiver)
+        // Reset visibility flag when activity is destroyed
+        FlutterCallkitIncomingPlugin.getInstance()?.getCallkitSoundPlayerManager()?.setFullScreenActivityVisible(false)
         super.onDestroy()
     }
 

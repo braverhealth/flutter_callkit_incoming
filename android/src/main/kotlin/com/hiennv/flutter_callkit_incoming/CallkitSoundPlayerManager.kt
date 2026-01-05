@@ -1,6 +1,9 @@
 package com.hiennv.flutter_callkit_incoming
 
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.Ringtone
@@ -17,30 +20,67 @@ class CallkitSoundPlayerManager(private val context: Context) {
     private var ringtone: Ringtone? = null
 
     private var isPlaying: Boolean = false
+    
+    /**
+     * Tracks whether the full-screen incoming call UI is visible.
+     * When true, pressing the power button (screen off) will stop the ringtone.
+     * When false (only notification showing), screen off won't stop the ringtone
+     * so it continues playing when the full-screen UI appears.
+     */
+    private var isFullScreenActivityVisible: Boolean = false
+
+    /**
+     * Receiver to stop ringtone when user presses power button while viewing
+     * the full-screen incoming call UI. This is an intentional user action to silence the call.
+     */
+    inner class ScreenOffBroadcastReceiver : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (isPlaying && isFullScreenActivityVisible) {
+                stop()
+            }
+        }
+    }
+
+    private var screenOffBroadcastReceiver = ScreenOffBroadcastReceiver()
+
+    fun setFullScreenActivityVisible(visible: Boolean) {
+        isFullScreenActivityVisible = visible
+    }
 
     fun play(data: Bundle) {
         this.isPlaying = true
         this.prepare()
         this.playSound(data)
         this.playVibrator()
+
+        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+        context.registerReceiver(screenOffBroadcastReceiver, filter)
     }
 
     fun stop() {
         this.isPlaying = false
+        this.isFullScreenActivityVisible = false
 
         ringtone?.stop()
         vibrator?.cancel()
         ringtone = null
         vibrator = null
+        try {
+            context.unregisterReceiver(screenOffBroadcastReceiver)
+        } catch (_: Exception) {}
     }
 
     fun destroy() {
         this.isPlaying = false
+        this.isFullScreenActivityVisible = false
 
         ringtone?.stop()
         vibrator?.cancel()
         ringtone = null
         vibrator = null
+        try {
+            context.unregisterReceiver(screenOffBroadcastReceiver)
+        } catch (_: Exception) {}
     }
 
     private fun prepare() {
